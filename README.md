@@ -1,64 +1,82 @@
-# 🚀 Deploy de Aplicação Java em Docker usando Jenkins na AWS
+# 🚀 Deploy de Aplicação Java em Docker usando Jenkins + Terraform na AWS
 
 ![AWS](https://imgur.com/Hk28ffE.png)
 
 ## 📌 Sobre o Projeto
 
-Este projeto demonstra a implementação de um pipeline completo de CI/CD para uma aplicação Java Web, utilizando Jenkins para build automatizado com Maven e Docker para containerização, tudo provisionado em instâncias EC2 na AWS.
+Este projeto demonstra a implementação de um pipeline completo de CI/CD para uma aplicação Java Web, utilizando Jenkins para build automatizado com Maven, Docker para containerização e **Terraform para provisionamento da infraestrutura como código (IaC)** na AWS.
 
-A solução simula um cenário real de DevOps, onde cada commit no repositório dispara automaticamente o processo de build, geração de artefato (.war), criação da imagem Docker e deploy do container em ambiente remoto.
+A solução simula um cenário real de DevOps, onde:
+
+* A infraestrutura é criada automaticamente via Terraform
+* Cada commit no repositório dispara o processo de build
+* O artefato (.war) é gerado
+* A imagem Docker é criada
+* O deploy é realizado automaticamente em ambiente provisionado na AWS
 
 ---
 
 # 🎯 Objetivo Técnico
 
-Construir um pipeline automatizado capaz de:
+Construir uma solução automatizada capaz de:
 
-- Integrar código versionado no GitHub
-- Compilar aplicação Java com Maven
-- Gerar artefato .war
-- Transferir artefato para servidor Docker
-- Criar imagem Docker customizada
-- Subir container automaticamente
-- Validar deploy via navegador
+* Provisionar infraestrutura na AWS com Terraform
+* Integrar código versionado no GitHub
+* Compilar aplicação Java com Maven
+* Gerar artefato .war
+* Transferir artefato para servidor Docker
+* Criar imagem Docker customizada
+* Subir container automaticamente
+* Validar deploy via navegador
 
 ---
 
 # 🏗️ Arquitetura da Solução
 
-A arquitetura é composta por dois servidores EC2:
+A arquitetura é composta por infraestrutura provisionada via Terraform:
+
+## 🔹 Camada de Infraestrutura (IaC)
+
+* VPC
+* Subnets públicas
+* Internet Gateway
+* Security Groups
+* 2 Instâncias EC2
 
 ## 🔹 Jenkins Server (CI)
-- Amazon Linux EC2
-- Java OpenJDK 11
-- Jenkins
-- Maven
-- Git
-- Plugin Publish Over SSH
+
+* Amazon Linux EC2
+* Java OpenJDK 11
+* Jenkins
+* Maven
+* Git
+* Plugin Publish Over SSH
 
 ## 🔹 Docker Host (CD)
-- Amazon Linux EC2
-- Docker Engine
-- Tomcat Container
-- Imagem customizada com Dockerfile
 
-Fluxo do pipeline:
+* Amazon Linux EC2
+* Docker Engine
+* Tomcat Container
+* Imagem customizada com Dockerfile
 
-GitHub → Jenkins Build → Artifact (.war) → SSH → Docker Host → Build Image → Run Container
+Fluxo completo:
+
+Terraform → AWS Infra → GitHub → Jenkins Build → Artifact (.war) → SSH → Docker Host → Build Image → Run Container
 
 ---
 
 # 🧰 Stack Tecnológica
 
-- AWS EC2
-- Jenkins
-- GitHub
-- Maven
-- Docker
-- Apache Tomcat
-- Java OpenJDK 11
-- SSH
-- Linux CLI
+* AWS EC2
+* Terraform
+* Jenkins
+* GitHub
+* Maven
+* Docker
+* Apache Tomcat
+* Java OpenJDK 11
+* SSH
+* Linux CLI
 
 ---
 
@@ -66,62 +84,101 @@ GitHub → Jenkins Build → Artifact (.war) → SSH → Docker Host → Build I
 
 ---
 
-# 🔹 1. Setup do Jenkins na AWS
+# 🔹 1. Provisionamento com Terraform (IaC)
 
-### Provisionamento
+### Estrutura
 
-- Criar instância EC2 (t2.micro)
-- Liberar portas:
-  - 22 (SSH)
-  - 8080 (Jenkins)
-- Instalar:
-  - Java 11
-  - Jenkins
-  - Git
-  - Maven
+* provider.tf
+* main.tf
+* variables.tf
+* outputs.tf
 
-### Inicialização
+### Recursos Criados
 
-- Iniciar serviço Jenkins
-- Acessar via: `http://<public-ip>:8080`
-- Recuperar senha inicial em:
-  ```
-  /var/lib/jenkins/secrets/initialAdminPassword
-  ```
-- Instalar plugins sugeridos
-- Criar usuário administrador
+* VPC
+* Subnet pública
+* Internet Gateway
+* Route Table
+* Security Groups
+* EC2 Jenkins
+* EC2 Docker Host
 
----
+### Execução
 
-# 🔹 2. Integração GitHub + Maven
-
-### Configurações
-
-- Instalar Git no servidor
-- Instalar GitHub Integration Plugin
-- Configurar Git em Global Tool Configuration
-- Instalar Maven Integration Plugin
-- Configurar JAVA_HOME e M2_HOME
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
 Resultado:
 
-✔ Jenkins apto a clonar repositório  
-✔ Build automatizado via Maven  
-✔ Geração de arquivo .war  
+✔ Infraestrutura criada automaticamente
+✔ EC2 Jenkins provisionada
+✔ EC2 Docker Host provisionada
 
 ---
 
-# 🔹 3. Setup do Docker Host
+# 🔹 2. Setup do Jenkins na AWS
 
-Criar segunda instância EC2:
+### Provisionamento (já criado via Terraform)
 
-- Instalar Docker
-- Habilitar e iniciar serviço
-- Liberar portas 8081–9000 no Security Group
+* Instância EC2 (t2.micro)
+* Portas liberadas:
+
+  * 22 (SSH)
+  * 8080 (Jenkins)
+
+### Instalação
+
+* Java 11
+* Jenkins
+* Git
+* Maven
+
+### Inicialização
+
+* Iniciar serviço Jenkins
+* Acessar via: `http://<public-ip>:8080`
+* Recuperar senha inicial em:
+
+  ```
+  /var/lib/jenkins/secrets/initialAdminPassword
+  ```
+* Instalar plugins sugeridos
+* Criar usuário administrador
 
 ---
 
-# 🔹 4. Resolução do Problema do Tomcat Oficial
+# 🔹 3. Integração GitHub + Maven
+
+### Configurações
+
+* Instalar Git no servidor
+* Instalar GitHub Integration Plugin
+* Configurar Git em Global Tool Configuration
+* Instalar Maven Integration Plugin
+* Configurar JAVA_HOME e M2_HOME
+
+Resultado:
+
+✔ Jenkins apto a clonar repositório
+✔ Build automatizado via Maven
+✔ Geração de arquivo .war
+
+---
+
+# 🔹 4. Setup do Docker Host
+
+(Provisionado automaticamente via Terraform)
+
+* Instalar Docker
+* Habilitar e iniciar serviço
+* Security Group liberando portas 8081–9000
+
+---
+
+# 🔹 5. Resolução do Problema do Tomcat Oficial
 
 A imagem oficial do Tomcat possui conteúdo padrão em:
 
@@ -148,46 +205,47 @@ Execução do container:
 docker run -d --name tomcat-server -p 8085:8080 tomcatserver
 ```
 
-✔ Container funcional  
-✔ Sem erro 404  
+✔ Container funcional
+✔ Sem erro 404
 
 ---
 
-# 🔹 5. Integração Docker com Jenkins
+# 🔹 6. Integração Docker com Jenkins
 
 ### Configurações
 
-- Criar usuário `dockeradmin`
-- Adicionar ao grupo docker
-- Habilitar autenticação SSH
-- Instalar plugin Publish Over SSH
-- Configurar Docker Host em "Configure System"
+* Criar usuário `dockeradmin`
+* Adicionar ao grupo docker
+* Habilitar autenticação SSH
+* Instalar plugin Publish Over SSH
+* Configurar Docker Host em "Configure System"
 
 Resultado:
 
-✔ Jenkins conectado ao Docker Host  
-✔ Capaz de enviar artefatos remotamente  
+✔ Jenkins conectado ao Docker Host
+✔ Capaz de enviar artefatos remotamente
 
 ---
 
-# 🔹 6. Build e Transferência do Artefato
+# 🔹 7. Build e Transferência do Artefato
 
 No Jenkins:
 
-- Criar novo job
-- Configurar SCM (GitHub)
-- Configurar build Maven
-- Em Post-Build:
-  - Send files over SSH
-  - Enviar arquivo `.war` para `/opt/docker`
+* Criar novo job
+* Configurar SCM (GitHub)
+* Configurar build Maven
+* Em Post-Build:
+
+  * Send files over SSH
+  * Enviar arquivo `.war` para `/opt/docker`
 
 Validação:
 
-✔ Arquivo webapp.war presente no Docker Host  
+✔ Arquivo webapp.war presente no Docker Host
 
 ---
 
-# 🔹 7. Atualização do Dockerfile para Deploy da Aplicação
+# 🔹 8. Atualização do Dockerfile para Deploy da Aplicação
 
 Dockerfile final:
 
@@ -215,11 +273,11 @@ Acesso:
 http://<public-ip>:8086/webapp/
 ```
 
-✔ Aplicação Java rodando em container  
+✔ Aplicação Java rodando em container
 
 ---
 
-# 🔹 8. Automação Completa (CI/CD)
+# 🔹 9. Automação Completa (CI/CD + IaC)
 
 Comandos adicionados no campo Exec do Jenkins:
 
@@ -231,12 +289,13 @@ docker run -d --name registerapp -p 8087:8080 regapp:v1
 
 Fluxo final:
 
-1. Commit no GitHub  
-2. Jenkins dispara build automaticamente  
-3. Maven gera WAR  
-4. WAR enviado via SSH  
-5. Docker build executado remotamente  
-6. Novo container sobe automaticamente  
+1. Terraform provisiona infraestrutura
+2. Commit no GitHub
+3. Jenkins dispara build automaticamente
+4. Maven gera WAR
+5. WAR enviado via SSH
+6. Docker build executado remotamente
+7. Novo container sobe automaticamente
 
 Deploy acessível via:
 
@@ -244,38 +303,43 @@ Deploy acessível via:
 http://<public-ip>:8087/webapp/
 ```
 
-✔ Pipeline totalmente automatizado  
+✔ Infraestrutura como Código
+✔ Pipeline totalmente automatizado
+✔ Deploy automatizado
 
 ---
 
 # 🔐 Boas Práticas Aplicadas
 
-- Separação de responsabilidades (CI / CD)
-- Uso de Dockerfile customizado
-- Build automatizado via SCM polling
-- Integração segura via SSH
-- Containerização para portabilidade
-- Automação end-to-end
+* Infraestrutura como Código (Terraform)
+* Separação de responsabilidades (IaC / CI / CD)
+* Uso de Dockerfile customizado
+* Build automatizado via SCM polling
+* Integração segura via SSH
+* Containerização para portabilidade
+* Automação end-to-end
 
 ---
 
 # 📊 Resultados Técnicos
 
-✔ Pipeline CI/CD funcional  
-✔ Deploy automatizado  
-✔ Containerização da aplicação  
-✔ Integração completa AWS + Jenkins + Docker  
-✔ Processo replicável e escalável  
+✔ Provisionamento automatizado da infraestrutura
+✔ Pipeline CI/CD funcional
+✔ Deploy automatizado
+✔ Containerização da aplicação
+✔ Integração completa AWS + Terraform + Jenkins + Docker
+✔ Processo replicável e escalável
 
 ---
 
 # 📚 Aprendizados Estratégicos
 
-- Jenkins como orquestrador de CI/CD
-- Build Java com Maven
-- Containerização de aplicações tradicionais
-- Deploy remoto via SSH
-- Automação baseada em eventos (commit)
+* Terraform como ferramenta de IaC
+* Jenkins como orquestrador de CI/CD
+* Build Java com Maven
+* Containerização de aplicações tradicionais
+* Deploy remoto via SSH
+* Automação baseada em eventos (commit)
 
 ---
 
@@ -283,11 +347,11 @@ http://<public-ip>:8087/webapp/
 
 Considere:
 
-- Dar uma estrela ⭐  
-- Compartilhar com sua rede  
-- Adaptar para pipeline declarativo  
-- Transformar em projeto Terraform + CI/CD  
+* Dar uma estrela ⭐
+* Compartilhar com sua rede
+* Evoluir para pipeline declarativo
+* Integrar com ECR e ECS futuramente
 
 ---
 
-> Projeto prático de CI/CD demonstrando integração real entre GitHub, Jenkins, Docker e AWS.
+> Projeto prático de DevOps demonstrando integração real entre Terraform, GitHub, Jenkins, Docker e AWS.
